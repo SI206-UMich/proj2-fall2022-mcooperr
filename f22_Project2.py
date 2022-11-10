@@ -25,7 +25,39 @@ def get_listings_from_search_results(html_file):
         ('Loft in Mission District', 210, '1944564'),  # example
     ]
     """
-    pass
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, html_file)
+    #insert html file above
+    f = open(full_path)
+    readf = f.read()
+    f.close()
+    bs = BeautifulSoup(readf, 'html.parser')
+
+    title_lst = []
+    titles = bs.find_all()
+    for title in titles:
+        title_lst.append(title)
+    #insert beautiful soup above
+
+    cost_lst = []
+    costs = bs.find_all()
+    for cost in costs:
+        cost=int(cost)
+        cost_lst.append(cost)
+     #insert beautiful soup above
+
+    listing_id_lst = []
+    listing_ids = bs.find_all()
+    for id in listing_ids:
+        listing_id_lst.append(id)
+    #insert beautiful soup above
+
+    lst_of_tups = []
+    for i in range(len(title_lst)):
+        lst_of_tups.append((title_lst[i],cost_lst[i],listing_id_lst[i]))
+    return lst_of_tups
+
+
 
 
 def get_listing_information(listing_id):
@@ -52,7 +84,37 @@ def get_listing_information(listing_id):
         number of bedrooms
     )
     """
-    pass
+    
+    source_dir = os.path.dirname(__file__)
+    full_path = os.path.join(source_dir, f'html_files/listing_{listing_id}.html')
+    #check this file path - not sure if this is correct
+    f = open(full_path)
+    readf = f.read()
+    f.close()
+    bs = BeautifulSoup(readf, 'html.parser')
+
+    policy_num_lst = []
+    policy_nums = bs.find_all()
+    #insert beautiful soup above
+    for num in policy_nums:
+        policy_num_lst.append(num)
+
+    place_type_lst = []
+    place_types = bs.find_all()
+    #insert beautiful soup above
+    for place in place_types:
+        place_type_lst.append(place)
+
+    beds_lst = []
+    beds = bs.find_all()
+    #insert beautiful soup above
+    for bed in beds:
+        bed = int(bed)
+        beds_lst.append(bed)
+
+
+
+    
 
 
 def get_detailed_listing_database(html_file):
@@ -69,7 +131,21 @@ def get_detailed_listing_database(html_file):
         ...
     ]
     """
-    pass
+    lst = []
+    results  = get_listings_from_search_results(html_file)
+    for tup in results:
+        listing_title = tup[0]
+        cost = tup[1]
+        listing_id = tup[2]
+        info = get_listing_information(listing_id)
+        for tup in info:
+            policy_num = tup[0]
+            place_type = tup[1]
+            beds = tup[2]
+        lst.append((listing_title, cost, listing_id, policy_num, place_type, beds))
+    return lst
+  
+        
 
 
 def write_csv(data, filename):
@@ -94,7 +170,16 @@ def write_csv(data, filename):
 
     This function should not return anything.
     """
-    pass
+    header = ["Listing Title", "Cost", "Listing ID", "Policy Number", "Place Type", "Number of Bedrooms"]
+    sort_data = sorted(data, key=lambda x:x[2])
+
+    base_path = os.path.abspath(os.path.dirname(__file__))
+    full_path = os.path.join(base_path, filename)
+    with open(full_path, 'w', newline = '') as f:
+        writer = csv.writer(f, delimeter = ',')
+        writer.writerow(header)
+        for tup in sort_data:
+            writer.writerow(tup)
 
 
 def check_policy_numbers(data):
@@ -116,7 +201,17 @@ def check_policy_numbers(data):
     ]
 
     """
-    pass
+    non_matches = []
+    pattern1 = r'20\d{2}-00\d{4}STR'
+    pattern2 = r'STR-000\d{4}'
+    for tup in data:
+        policy_num = tup[3]
+        results_1 = re.search(pattern1, policy_num)
+        results_2 = re.search(pattern2, policy_num)
+        if policy_num not in results_1 or results_2:
+            non_matches.append(policy_num)
+    return non_matches
+            
 
 
 def extra_credit(listing_id):
@@ -147,7 +242,8 @@ class TestCases(unittest.TestCase):
         # check that the variable you saved after calling the function is a list
         self.assertEqual(type(listings), list)
         # check that each item in the list is a tuple
-
+        for item in listings:
+            self.assertEqual(type(item), tuple)
         # check that the first title, cost, and listing id tuple is correct (open the search results html and find it)
 
         # check that the last title is correct (open the search results html and find it)
@@ -174,7 +270,7 @@ class TestCases(unittest.TestCase):
             # check that the third element in the tuple is an int
             self.assertEqual(type(listing_information[2]), int)
         # check that the first listing in the html_list has policy number 'STR-0001541'
-
+        
         # check that the last listing in the html_list is a "Private Room"
 
         # check that the third listing has one bedroom
