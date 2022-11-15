@@ -34,17 +34,18 @@ def get_listings_from_search_results(html_file):
     bs = BeautifulSoup(readf, 'html.parser')
 
     title_lst = []
-    titles = bs.find_all()
-    for title in titles:
-        title_lst.append(title)
-    #insert beautiful soup above
+    titles = bs.find_all('div', class_= "t1jojoys dir dir-ltr")
+    for i in titles:
+        info = str(i).split(">")
+        title = info[1].split("<")
+        title_lst.append(title[0])
+    #print(title_lst)
 
     cost_lst = []
-    costs = bs.find_all()
+    costs = bs.find_all('span', class_ = "_tyxjp1")
     for cost in costs:
-        cost=int(cost)
-        cost_lst.append(cost)
-     #insert beautiful soup above
+        num = cost.text.lstrip("$")
+        cost_lst.append(int(num))
 
     listing_id_lst = []
     listing_ids = bs.find_all()
