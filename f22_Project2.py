@@ -25,40 +25,31 @@ def get_listings_from_search_results(html_file):
         ('Loft in Mission District', 210, '1944564'),  # example
     ]
     """
-    source_dir = os.path.dirname(__file__)
-    full_path = os.path.join(source_dir, html_file)
-    #insert html file above
-    f = open(full_path)
-    readf = f.read()
-    f.close()
-    bs = BeautifulSoup(readf, 'html.parser')
+    with open(html_file) as fh:
+        bs = BeautifulSoup(fh, 'html.parser')
+        titles = bs.find_all('div', class_= "t1jojoys dir dir-ltr")
+        costs = bs.find_all('span', class_ = "_tyxjp1")
+        ids = bs.find_all('div', class_='t1jojoys dir dir-ltr')
 
-    title_lst = []
-    titles = bs.find_all('div', class_= "t1jojoys dir dir-ltr")
-    for i in titles:
-        info = str(i).split(">")
-        title = info[1].split("<")
-        title_lst.append(title[0])
-    #print(title_lst)
+        info_tups = []
 
-    cost_lst = []
-    costs = bs.find_all('span', class_ = "_tyxjp1")
-    for cost in costs:
-        num = cost.text.lstrip("$")
-        cost_lst.append(int(num))
+        id_list = []
 
-    listing_id_lst = []
-    listing_ids = bs.find_all()
-    for id in listing_ids:
-        listing_id_lst.append(id)
-    #insert beautiful soup above
+        for i in ids:
+            tag = i.get('id')
+            tag2 = re.findall("([0-9]+)", tag)
+            for id_ in tag2:
+                id_list.append(id_)
 
-    lst_of_tups = []
-    for i in range(len(title_lst)):
-        lst_of_tups.append((title_lst[i],cost_lst[i],listing_id_lst[i]))
-    return lst_of_tups
-
-
+        for i in range(len(titles)):
+            title = titles[i].get_text()
+            i_cost = costs[i].get_text().strip('$')
+            cost = int(i_cost)
+            id_ = id_list[i]
+            tup = (title, cost, id_)
+            info_tups.append(tup)
+    print(info_tups)
+    return info_tups
 
 
 def get_listing_information(listing_id):
@@ -88,17 +79,16 @@ def get_listing_information(listing_id):
     
     source_dir = os.path.dirname(__file__)
     full_path = os.path.join(source_dir, f'html_files/listing_{listing_id}.html')
-    #check this file path - not sure if this is correct
-    f = open(full_path)
-    readf = f.read()
-    f.close()
-    bs = BeautifulSoup(readf, 'html.parser')
+    with open(full_path, 'r') as fh:
+        contents = fh.read()
+    bs = BeautifulSoup(contents, 'html.parser')
 
     policy_num_lst = []
-    policy_nums = bs.find_all()
-    #insert beautiful soup above
+    policy_nums = bs.find_all('li', class_ = "f19phm7j dir dir-ltr")
     for num in policy_nums:
+        print(num)
         policy_num_lst.append(num)
+    
 
     place_type_lst = []
     place_types = bs.find_all()
